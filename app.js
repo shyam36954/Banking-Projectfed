@@ -1,4 +1,3 @@
-// Small browser-only banking demo.
 const DATA_KEY = 'evergreen_review_data';
 const SESSION_KEY = 'evergreen_review_user';
 const app = document.querySelector('#app');
@@ -21,7 +20,6 @@ try {
   data = newData();
 }
 
-// Keep the review demo administrator available in this browser.
 if (!data.users.some(user => user.role === 'admin')) {
   data.users.push(newData().users[0]);
 }
@@ -62,7 +60,6 @@ function loginPage(signup = false) {
           <div class="field"><label>Password</label><input name="password" type="password" minlength="6" required></div>
           ${signup ? `<div class="field"><label>4-digit balance PIN</label><input name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></div>` : ''}
           <button class="button primary wide">${signup ? 'Sign up' : 'Log in'}</button>
-          <div class="hint">Admin demo: <b>admin123@gmail.com</b> / <b>admin123</b></div>
           <p class="links">${signup ? 'Already registered?' : 'New customer?'}
             <button class="link" type="button" id="switch">${signup ? 'Log in' : 'Sign up'}</button>
           </p>
@@ -143,7 +140,37 @@ function homePage(user) {
       <div class="section"><small>ACCOUNT STATUS</small><div class="amount">${user.status}</div></div>
     </div>
     <div class="section"><h2>My loan requests</h2>${myLoans.length ? myLoans.map(loan => `<p>${loan.purpose} · ₹${loan.amount} · <b>${loan.status}</b></p>`).join('') : '<p class="help">No requests yet.</p>'}</div>
+    <div class="section">
+  <h2>Change PIN</h2>
+  <form id="pinForm">
+    <div class="field">
+      <label>Current PIN</label>
+      <input name="oldPin" type="password" inputmode="numeric"
+             maxlength="4" pattern="[0-9]{4}" required>
+    </div>
+    <div class="field">
+      <label>New 4-digit PIN</label>
+      <input name="newPin" type="password" inputmode="numeric"
+             maxlength="4" pattern="[0-9]{4}" required>
+    </div>
+    <button class="button primary">Update PIN</button>
+  </form>
+</div>
     `);
+    document.querySelector('#pinForm').onsubmit = event => {
+  event.preventDefault();
+
+  const form = new FormData(event.target);
+
+  if (form.get('oldPin') !== user.pin) {
+    return say('Current PIN is incorrect.');
+  }
+
+  user.pin = form.get('newPin');
+  save();
+  event.target.reset();
+  say('PIN changed successfully.');
+};
 
   document.querySelector('#check').onclick = () => {
     if (document.querySelector('#pin').value !== user.pin) return say('PIN is incorrect.');
@@ -157,7 +184,7 @@ function loanPage(user) {
     <div class="section" style="max-width:540px">
       <form id="loanForm">
         <div class="field"><label>Purpose</label><input name="purpose" required></div>
-        <div class="field"><label>Amount (₹)</label><input name="amount" type="number" min="1000" required></div>
+        <div class="field"><label>Amount (₹)</label><input name="amount" type="number" min="10000" required></div>
         <button class="button primary">Submit request</button>
       </form>
     </div>`);
